@@ -2,6 +2,7 @@ if exists("g:loaded_vimux_ruby_test") || &cp
   finish
 endif
 let g:loaded_vimux_ruby_test = 1
+let g:vimux_rubytest_dir = expand('<sfile>:p:h:h')
 
 if !has("ruby")
   finish
@@ -12,6 +13,8 @@ command RunAllRailsTests :call s:RunAllRailsTests()
 command RunRubyFocusedTest :call s:RunRubyFocusedTest()
 command RunRailsFocusedTest :call s:RunRailsFocusedTest()
 command RunRubyFocusedContext :call s:RunRubyFocusedContext()
+
+
 
 function s:RunAllRubyTests()
   ruby RubyTest.new.run_all
@@ -117,7 +120,7 @@ class RubyTest
 
   def run_all(rails=false)
     if spec_file?
-      send_to_vimux("#{spec_command} '#{current_file}'")
+      send_to_vimux("#{spec_command} '#{current_file}' #{quickfix_formatters}")
     else
       send_to_vimux("ruby #{"-I #{rails_test_dir} " if rails}#{current_file}")
     end
@@ -135,8 +138,16 @@ class RubyTest
     end
   end
 
+  def plugin_path
+    VIM.evaluate("g:vimux_rubytest_dir")
+  end
+
+  def quickfix_formatters
+    "-r #{File.join(plugin_path, 'vim_rspec_formatter.rb')} --format progress --format RSpec::Core::Formatters::VimFormatter --out rspec.quickfix.errors"
+  end
+
   def send_to_vimux(test_command)
-    Vim.command("call RunVimTmuxCommand(\"clear && #{test_command}\")")
+    Vim.command("call RunVimTmuxCommand(\"#{test_command}\")")
   end
 end
 EOF
