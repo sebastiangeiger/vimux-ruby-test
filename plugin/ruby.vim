@@ -147,7 +147,7 @@ class RubyTest
   end
 
   def send_to_vimux(test_command)
-    Vim.command("call RunVimTmuxCommand(\"#{test_command}\")")
+    Vim.command("call RunVimTmuxCommand(\"clear && #{test_command}\")")
   end
 end
 EOF
