@@ -127,14 +127,16 @@ class RubyTest
   end
 
   def spec_command
-    if File.exists?('./.zeus.sock')
+    if zeus?
       'zeus rspec'
+    elsif spring?
+      'spring rspec'
     elsif File.exists?('./bin/rspec')
       './bin/rspec'
-    elsif File.exists?("Gemfile") && match = `bundle show rspec`.match(/(\d+\.\d+\.\d+)$/)
+    elsif File.exists?("Gemfile") && match = `bundle show rspec-core`.match(/(\d+\.\d+\.\d+)$/)
       match.to_a.last.to_f < 2 ? "bundle exec spec" : "bundle exec rspec"
     else
-      system("rspec -v > /dev/null 2>&1") ? "rspec --no-color" : "spec"
+      system("rspec -v > /dev/null 2>&1") ? "rspec" : "spec"
     end
   end
 
@@ -143,8 +145,21 @@ class RubyTest
   end
 
   def quickfix_formatters
-    "-r #{File.join(plugin_path, 'vim_rspec_formatter.rb')} --format progress --format RSpec::Core::Formatters::VimFormatter --out rspec.quickfix.errors"
+    if zeus?
+      "--format progress --format RSpec::Core::Formatters::VimFormatter --out rspec.quickfix.errors"
+    else
+      "-r #{File.join(plugin_path, 'vim_rspec_formatter.rb')} --format progress --format RSpec::Core::Formatters::VimFormatter --out rspec.quickfix.errors"
+    end
   end
+
+  def zeus?
+    File.exists?('./.zeus.sock')
+  end
+
+  def spring?
+    `gem list`.lines.grep(/^spring \(.*\)/)
+  end
+
 
   def send_to_vimux(test_command)
     Vim.command("call RunVimTmuxCommand(\"clear && #{test_command}\")")
