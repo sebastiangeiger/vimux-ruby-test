@@ -157,7 +157,7 @@ class RubyTest
   end
 
   def spring?
-    `gem list`.lines.grep(/^spring \(.*\)/)
+    system 'spring' # Fails and returns nil if command does not exist
   end
 
 
